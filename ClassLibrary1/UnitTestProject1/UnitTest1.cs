@@ -5,62 +5,65 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace UnitTestProject1
 {
-[TestClass]
-public class UnitTest1
-{
-    [TestMethod]
-    public void ConfigureWithoutBindMethod()
+    [TestClass]
+    public class UnitTest1
     {
-        var collection = new ServiceCollection();
+        [TestMethod]
+        public void ConfigureWithoutBindMethod()
+        {
+            var collection = new ServiceCollection();
+            collection.AddOptions();
 
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("test.json", optional: false)
-            .Build();
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("test.json", optional: false)
+                .Build();
 
-        collection.Configure<TestOptions>(config.GetSection("Test"));
+            collection.Configure<TestOptions>(config.GetSection("Test"));
 
-        var services = collection.BuildServiceProvider();
+            var services = collection.BuildServiceProvider();
 
-        var options = services.GetService<IOptions<TestOptions>>();
+            var options = services.GetService<IOptions<TestOptions>>();
 
-        Assert.IsNotNull(options);
+            Assert.IsNotNull(options);
+        }
+
+        [TestMethod]
+        public void ConfigureWithBindMethod()
+        {
+            var collection = new ServiceCollection();
+            collection.AddOptions();
+
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("test.json", optional: false)
+                .Build();
+
+            collection.Configure<TestOptions>(o => config.GetSection("Test").Bind(o));
+
+            var services = collection.BuildServiceProvider();
+
+            var options = services.GetService<IOptions<TestOptions>>();
+
+            Assert.IsNotNull(options);
+        }
+
+        [TestMethod]
+        public void SectionIsAvailable()
+        {
+            var collection = new ServiceCollection();
+            collection.AddOptions();
+
+            var config = new ConfigurationBuilder()
+                .AddJsonFile("test.json", optional: false)
+                .Build();
+
+            var section = config.GetSection("Test");
+            Assert.IsNotNull(section);
+            Assert.AreEqual("yes", section["ItemOne"]);
+        }
     }
 
-    [TestMethod]
-    public void ConfigureWithBindMethod()
+    public class TestOptions
     {
-        var collection = new ServiceCollection();
-
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("test.json", optional: false)
-            .Build();
-
-        collection.Configure<TestOptions>(o => config.GetSection("Test").Bind(o));
-
-        var services = collection.BuildServiceProvider();
-
-        var options = services.GetService<IOptions<TestOptions>>();
-
-        Assert.IsNotNull(options);
+        public string ItemOne { get; set; }
     }
-
-    [TestMethod]
-    public void SectionIsAvailable()
-    {
-        var collection = new ServiceCollection();
-
-        var config = new ConfigurationBuilder()
-            .AddJsonFile("test.json", optional: false)
-            .Build();
-
-        var section = config.GetSection("Test");
-        Assert.IsNotNull(section);
-        Assert.AreEqual("yes", section["ItemOne"]);
-    }
-}
-
-public class TestOptions
-{
-    public string ItemOne { get; set; }
-}
 }
